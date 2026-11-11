@@ -908,7 +908,8 @@ text size) and applies it.
   profiles and lists, and the gift wraps when the user keeps chat history:
   as they came, so the history on disk opens only with the key. The app's
   side is `services::nostr` (the key in the keyring, or DPAPI on Windows,
-  like Sunshine's password), `pages::community` (friends and chats),
+  like Sunshine's password), `pages::community` (friends, chats, and the
+  user's profile with the game friends see now),
   `pages::settings::community`, and the "Discussions" and "Share" dialogs.
 - **heronite-achievements:** every game's achievements, whatever its store.
   `target` says which sources a Collection game has (its store, its Steam

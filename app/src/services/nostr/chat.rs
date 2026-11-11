@@ -134,7 +134,7 @@ impl Nostr {
         let fresh = Timestamp::now().as_secs().saturating_sub(message.at.as_secs()) < FRESH;
         if live && !mine && fresh {
             self.chats.unread.insert(key.clone());
-            let gaming = self.sharing_game().is_some();
+            let gaming = self.in_game();
             if self.prefs.notify_messages && (!gaming || self.prefs.notify_while_playing) {
                 // The text stays in Heronite: the notification names the sender only.
                 crate::system::notify::send(tr!("New message"), tr!("From {name}", name = self.label(&message.from)));

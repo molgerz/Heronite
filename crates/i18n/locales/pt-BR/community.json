@@ -130,5 +130,19 @@
   "{n} new chat": "{n} conversa nova",
   "{n} new chats": "{n} conversas novas",
   "{n} replies": "{n} respostas",
-  "{n} reply": "{n} resposta"
+  "{n} reply": "{n} resposta",
+  "Bio": "Bio",
+  "My profile": "Meu perfil",
+  "Not playing": "Não está jogando",
+  "Not shared": "Não compartilhado",
+  "Not shared: \"Share what I'm playing\" is off.": "Não compartilhado: \"Compartilhar o que estou jogando\" está desligado.",
+  "Not shared: Heronite knows no Steam or IGDB id for this game, so friends' apps could not tell which game it is.": "Não compartilhado: o Heronite não conhece nenhum id da Steam ou do IGDB deste jogo, então os apps dos seus amigos não saberiam qual jogo é.",
+  "Not shared: the community layer is not connected.": "Não compartilhado: a comunidade não está conectada.",
+  "Not shared: this game is left out in its Discussions.": "Não compartilhado: este jogo está excluído nas suas Discussões.",
+  "Picture and more in Settings": "Imagem e mais em Configurações",
+  "Shared": "Compartilhado",
+  "What friends see: your game now, name and bio": "O que os amigos veem: seu jogo agora, nome e bio",
+  "When a game runs, it shows here.": "Quando um jogo está rodando, ele aparece aqui.",
+  "You": "Você",
+  "Your friends see it.": "Seus amigos veem."
 }

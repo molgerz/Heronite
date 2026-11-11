@@ -5,10 +5,10 @@
 use gpui_kit::prelude::*;
 use gpui_kit::*;
 use heronite_i18n::tr;
-use heronite_nostr::social::Profile;
 
 use super::super::SettingsPage;
 use crate::icons::Icon;
+use crate::pages::community::profile;
 use crate::services::nostr::{self as service, Pairing};
 use crate::theme;
 use crate::ui::controls::{button_sm, caption, card, help_text, icon_badge, row, row_lead, ButtonKind};
@@ -178,23 +178,20 @@ pub(super) fn setup_card(d: &SettingsPage, cx: &mut Context<SettingsPage>) -> Di
     ]))
 }
 
-/// Fills the profile fields once from the profile the relays sent.
+/// Shows the newest profile (from the relays, or saved on the Community
+/// page's Profile tab) in the fields, unless the user changed them.
 pub(super) fn fill_profile(d: &mut SettingsPage, window: &mut Window, cx: &mut Context<SettingsPage>) {
-    let (me, profile) = {
-        let svc = service::get(cx);
-        let svc = svc.read(cx);
-        (svc.me().map(|k| k.to_hex()), svc.my_profile())
-    };
-    let Some(me) = me else { return };
-    // Once per identity, when its profile came (the fields are the user's afterwards).
-    if d.community.profile_of.as_deref() == Some(me.as_str()) || profile == Profile::default() {
+    let profile = service::get(cx).read(cx).my_profile();
+    let current = [profile::shown_name(&profile), profile.about, profile.picture];
+    let s = &d.community;
+    let shown = [s.name.read(cx).value().to_string(), s.about.read(cx).value().to_string(), s.picture.read(cx).value().to_string()];
+    if !d.community.filled.take(&shown, &current) {
         return;
     }
-    d.community.profile_of = Some(me);
-    let name = if profile.display_name.is_empty() { profile.name.clone() } else { profile.display_name.clone() };
+    let [name, about, picture] = current;
     d.community.name.update(cx, |i, cx| i.set_value(name, window, cx));
-    d.community.about.update(cx, |i, cx| i.set_value(profile.about.clone(), window, cx));
-    d.community.picture.update(cx, |i, cx| i.set_value(profile.picture.clone(), window, cx));
+    d.community.about.update(cx, |i, cx| i.set_value(about, window, cx));
+    d.community.picture.update(cx, |i, cx| i.set_value(picture, window, cx));
 }
 
 pub(super) fn account_card(_d: &SettingsPage, cx: &mut Context<SettingsPage>) -> Div {
@@ -238,12 +235,8 @@ pub(super) fn profile_card(d: &SettingsPage, cx: &mut Context<SettingsPage>) -> 
             |d, _, _, cx| {
                 let s = &d.community;
                 let svc = service::get(cx);
-                let mut profile = svc.read(cx).my_profile();
-                profile.display_name = s.name.read(cx).value().trim().to_string();
-                if profile.name.is_empty() {
-                    profile.name = profile.display_name.clone();
-                }
-                profile.about = s.about.read(cx).value().trim().to_string();
+                let mut profile =
+                    profile::with_name_and_about(svc.read(cx).my_profile(), &s.name.read(cx).value(), &s.about.read(cx).value());
                 profile.picture = s.picture.read(cx).value().trim().to_string();
                 svc.update(cx, |svc, cx| svc.save_profile(profile, cx));
             },
@@ -313,7 +306,6 @@ pub(super) fn keys_card(d: &SettingsPage, cx: &mut Context<SettingsPage>) -> Div
             .on_click(cx.listener(|d, _, _, cx| {
                 if d.community.confirm_forget {
                     d.community.confirm_forget = false;
-                    d.community.profile_of = None;
                     service::get(cx).update(cx, |s, cx| s.forget(cx));
                 } else {
                     d.community.confirm_forget = true;
