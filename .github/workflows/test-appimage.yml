@@ -1,13 +1,21 @@
 # A test AppImage of the community layer (not for Heronite itself): this
 # branch is feat/community-profile plus this file. Built like the release
 # job, without update information, so no AppImage updater replaces it with
-# the official release. Download it from the run's artifacts.
+# the official release, and published as a numbered pre-release
+# ("Heronite Nostr test build N", Heronite-Nostr-x86_64.AppImage), never marked as the latest release.
 name: Test AppImage
 
 on:
   push:
     branches: [dev/nostr-test]
   workflow_dispatch:
+
+permissions:
+  contents: write
+
+concurrency:
+  group: test-appimage
+  cancel-in-progress: false
 
 jobs:
   appimage:
@@ -34,9 +42,27 @@ jobs:
           APPIMAGE_EXTRACT_AND_RUN: "1"
           UPDATE_INFO: ""
         run: scripts/appimage.sh
-      - uses: actions/upload-artifact@v4
-        with:
-          name: Heronite-community-test-AppImage
-          path: dist/Heronite-x86_64.AppImage
-          if-no-files-found: error
-          retention-days: 14
+      - name: Pre-release
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          n=$(( $(gh release list --limit 1000 --json tagName --jq '[.[] | select(.tagName | startswith("heronite-nostr-test-"))] | length') + 1 ))
+          base=v$(sed -n 's/^version = "\(.*\)"/\1/p' Cargo.toml | head -1)
+          cp dist/Heronite-x86_64.AppImage dist/Heronite-Nostr-x86_64.AppImage
+          cat > "$RUNNER_TEMP/notes.md" <<EOF
+          A test build of the **optional community layer on Nostr**, an early draft for [discussion #252](https://github.com/RafaelGoulartB/Heronite/discussions/252). Not an official Heronite release and not finished: expect rough edges, and feedback is very welcome.
+
+          Based on Heronite ${base}, commit \`${GITHUB_SHA::8}\`. Linux x86_64 (also Steam Deck, in Desktop Mode). The AppImage has no update information, so it never replaces an installed official Heronite.
+
+          **Try it without touching your library**, with a data folder of its own:
+
+          \`\`\`
+          chmod +x Heronite-Nostr-x86_64.AppImage
+          HERONITE_DATA_DIR=~/heronite-test1 ./Heronite-Nostr-x86_64.AppImage
+          \`\`\`
+
+          Then turn it on in **Settings → Community**. To try friends, chats and "playing" alone, start a second one with another folder (\`HERONITE_DATA_DIR=~/heronite-test2\`) and add each other's npub, or add a Nostr app on your phone as a friend.
+          EOF
+          gh release create "heronite-nostr-test-$n" dist/Heronite-Nostr-x86_64.AppImage \
+            --target "$GITHUB_SHA" --prerelease --latest=false \
+            --title "Heronite Nostr test build $n" --notes-file "$RUNNER_TEMP/notes.md"
