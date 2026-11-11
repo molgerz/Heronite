@@ -33,6 +33,7 @@ pub struct Pages {
     rockstar: Option<AnyView>,
     emulators: Option<AnyView>,
     stats: Option<AnyView>,
+    community: Option<AnyView>,
     settings: Option<AnyView>,
     subs: Vec<Subscription>,
     meta: NavMeta,
@@ -321,6 +322,8 @@ impl CollectionView {
                     None => pending(),
                 };
                 let update = update_meta(cx);
+                // Not started just for the menu: it starts with the library.
+                let community_unread = crate::services::nostr::started(cx).map_or(0, |s| s.read(cx).unread_count());
                 let clients_on = crate::services::clients_started(cx).map_or(0, |c| c.read(cx).signed_in());
                 let stores_on = usize::from(signed_in)
                     + Store::ALL.iter().filter(|st| svc.is_some_and(|s| s.store(**st).account.logged_in)).count()
@@ -352,6 +355,10 @@ impl CollectionView {
                     | Page::Rockstar => Trailing::Meta(stores_meta.clone(), false),
                     Page::WineManager => Trailing::Meta(meta.wine.clone().unwrap_or_else(pending), false),
                     Page::Emulators => Trailing::Meta(emulators.clone(), false),
+                    Page::Community => match community_unread {
+                        0 => Trailing::Meta(String::new(), false),
+                        n => Trailing::Count(heronite_i18n::trn!(n, "{n} new chat", "{n} new chats"), n),
+                    },
                     Page::Settings => match &update {
                         Some(text) => Trailing::Meta(text.clone(), true),
                         None => Trailing::Key("Ctrl ,"),
@@ -362,10 +369,12 @@ impl CollectionView {
                 // runs them. The stores are one "Stores" row (their pages
                 // list each other).
                 let stores = this.pages.stores_page();
-                for (i, group) in
-                    [&[Page::Collection, Page::Downloads, Page::Statistics][..], &[stores, Page::Emulators, Page::WineManager][..]]
-                        .into_iter()
-                        .enumerate()
+                for (i, group) in [
+                    &[Page::Collection, Page::Downloads, Page::Statistics, Page::Community][..],
+                    &[stores, Page::Emulators, Page::WineManager][..],
+                ]
+                .into_iter()
+                .enumerate()
                 {
                     if i > 0 {
                         p = p.child(menu_separator());
@@ -542,6 +551,11 @@ impl CollectionView {
             Page::Ea => set_client_shown::<pages::clients::EaKind>(&p.ea, false, cx),
             Page::Ubisoft => set_client_shown::<pages::clients::UbisoftKind>(&p.ubisoft, false, cx),
             Page::Rockstar => set_client_shown::<pages::clients::RockstarKind>(&p.rockstar, false, cx),
+            Page::Community => {
+                if let Some(v) = p.community.clone().and_then(|v| v.downcast::<pages::community::CommunityPage>().ok()) {
+                    v.update(cx, |p, _| p.hidden());
+                }
+            }
             Page::Collection | Page::Epic | Page::Gog | Page::Amazon | Page::Steam | Page::Xbox => {}
         }
     }
@@ -609,6 +623,7 @@ impl CollectionView {
             Page::Rockstar => self.pages.rockstar.is_none(),
             Page::Emulators => self.pages.emulators.is_none(),
             Page::Statistics => self.pages.stats.is_none(),
+            Page::Community => self.pages.community.is_none(),
             Page::Settings => self.pages.settings.is_none(),
         };
         if !slot_empty {
@@ -694,6 +709,12 @@ impl CollectionView {
                 self.pages.hooks.insert(Page::Statistics, crate::console::PadHook::new(&v));
                 self.pages.stats = Some(v.into());
             }
+            Page::Community => {
+                let v = cx.new(|cx| pages::community::CommunityPage::new(ctx, window, cx));
+                self.pages.subs.push(cx.subscribe_in(&v, window, Self::on_page_event));
+                self.pages.hooks.insert(Page::Community, crate::console::PadHook::new(&v));
+                self.pages.community = Some(v.into());
+            }
             Page::Settings => {
                 let v = cx.new(|cx| pages::settings::SettingsPage::new(ctx, window, cx));
                 self.pages.subs.push(cx.subscribe_in(&v, window, Self::on_page_event));
@@ -728,6 +749,9 @@ impl CollectionView {
         list::<pages::clients::RockstarPage>(Page::Rockstar, &p.rockstar, &ctx, cx, &mut out);
         list::<pages::emulators::EmulatorsPage>(Page::Emulators, &p.emulators, &ctx, cx, &mut out);
         list::<pages::stats::StatsPage>(Page::Statistics, &p.stats, &ctx, cx, &mut out);
+        if Page::Community.available() {
+            list::<pages::community::CommunityPage>(Page::Community, &p.community, &ctx, cx, &mut out);
+        }
         list::<pages::settings::SettingsPage>(Page::Settings, &p.settings, &ctx, cx, &mut out);
         out
     }
@@ -761,6 +785,7 @@ impl CollectionView {
             Page::Rockstar => run::<pages::clients::RockstarPage>(&p.rockstar, id, window, cx),
             Page::Emulators => run::<pages::emulators::EmulatorsPage>(&p.emulators, id, window, cx),
             Page::Statistics => run::<pages::stats::StatsPage>(&p.stats, id, window, cx),
+            Page::Community => run::<pages::community::CommunityPage>(&p.community, id, window, cx),
             Page::Settings => run::<pages::settings::SettingsPage>(&p.settings, id, window, cx),
         }
         cx.notify();
@@ -788,6 +813,7 @@ impl CollectionView {
             Page::Rockstar => modal::<pages::clients::RockstarPage>(&p.rockstar, cx),
             Page::Emulators => modal::<pages::emulators::EmulatorsPage>(&p.emulators, cx),
             Page::Statistics => modal::<pages::stats::StatsPage>(&p.stats, cx),
+            Page::Community => modal::<pages::community::CommunityPage>(&p.community, cx),
             Page::Settings => modal::<pages::settings::SettingsPage>(&p.settings, cx),
         }
     }
@@ -845,6 +871,7 @@ impl CollectionView {
             Page::Rockstar => close::<pages::clients::RockstarPage>(&p.rockstar, window, cx),
             Page::Emulators => close::<pages::emulators::EmulatorsPage>(&p.emulators, window, cx),
             Page::Statistics => close::<pages::stats::StatsPage>(&p.stats, window, cx),
+            Page::Community => close::<pages::community::CommunityPage>(&p.community, window, cx),
             Page::Settings => close::<pages::settings::SettingsPage>(&p.settings, window, cx),
         };
         if !closed {
@@ -966,6 +993,7 @@ impl CollectionView {
             Page::Rockstar => self.pages.rockstar.clone(),
             Page::Emulators => self.pages.emulators.clone(),
             Page::Statistics => self.pages.stats.clone(),
+            Page::Community => self.pages.community.clone(),
             Page::Settings => self.pages.settings.clone(),
         }?;
         Some(view.into_any_element())
@@ -988,6 +1016,7 @@ impl CollectionView {
             Page::Rockstar => self.pages.rockstar.clone(),
             Page::Emulators => self.pages.emulators.clone(),
             Page::Statistics => self.pages.stats.clone(),
+            Page::Community => self.pages.community.clone(),
             Page::Settings => self.pages.settings.clone(),
         }?;
         let header = div()

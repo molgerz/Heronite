@@ -13,6 +13,7 @@
 //!   by `local_library/settings.json` (`appearance.rs`, `metadata/`,
 //!   `screenshots.rs`, `saves.rs` + `backup/`). Any write ends in
 //!   [`SettingsPage::saved`].
+//! - Community: the community layer on Nostr (`community/`, `services::nostr`).
 //! - Integrations: Sunshine, for Moonlight (`integrations.rs`,
 //!   `services::sunshine`).
 //! - Cloud: the account the library sync, backups, game saves and screenshots
@@ -29,7 +30,7 @@
 //!
 //! Debug: `HERONITE_DEBUG_SETTINGS_SEARCH=<text>` types it in the search (`<text>!`: and presses Enter),
 //! `HERONITE_DEBUG_SETTINGS_KEYS=down,down,enter` then presses those keys in it (`lang:pt-BR` switches the language);
-//! `HERONITE_DEBUG_PAGE=settings[:general|appearance|console-mode|advanced|defaults[:wine|other|advanced|gamescope]|downloads|library|launchers|integrations|storage|mods|overlay|replay|metadata|screenshots|backups|cloud|logs|about]`.
+//! `HERONITE_DEBUG_PAGE=settings[:general|appearance|console-mode|advanced|defaults[:wine|other|advanced|gamescope]|downloads|library|launchers|integrations|community|storage|mods|overlay|replay|metadata|screenshots|backups|cloud|logs|about]`.
 
 mod about;
 mod achievements;
@@ -37,6 +38,7 @@ mod advanced;
 mod appearance;
 mod backup;
 mod cloud;
+mod community;
 mod console;
 mod console_mode;
 mod integrations;
@@ -148,6 +150,7 @@ pub struct SettingsPage {
     library: library::State,
     launchers: launchers::State,
     integrations: integrations::State,
+    community: community::State,
     overlay: overlay::State,
     replay: replay::State,
     mods: mods::State,
@@ -246,6 +249,7 @@ impl SettingsPage {
             library: library::State::new(&ctx),
             launchers: launchers::State::new(cx),
             integrations: integrations::State::new(window, cx),
+            community: community::State::new(window, cx),
             overlay: overlay::State::new(&ctx, cx),
             replay: replay::State::new(&ctx, cx),
             mods: mods::State::new(window, cx),
@@ -409,7 +413,8 @@ impl SettingsPage {
     fn dismiss_confirms(&mut self) -> bool {
         let launchers = self.launchers.dismiss();
         let library = self.library.dismiss();
-        launchers || library
+        let community = self.community.dismiss();
+        launchers || library || community
     }
 
     fn select(&mut self, section: Section, window: &mut Window, cx: &mut Context<Self>) {
@@ -755,6 +760,7 @@ impl SettingsPage {
             Section::Overlay => overlay::render(self, window, cx),
             Section::Launchers => launchers::render(self, cx),
             Section::Integrations => integrations::render(self, window, cx),
+            Section::Community => community::render(self, window, cx),
             Section::Replay => replay::render(self, window, cx),
             Section::Appearance => Self::collection_section(appearance::render(self, window, cx), self.error.clone()),
             Section::Metadata => Self::collection_section(metadata::render(self, window, cx), self.error.clone()),

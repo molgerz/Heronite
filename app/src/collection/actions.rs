@@ -193,11 +193,15 @@ impl CollectionView {
             }
             LaunchEvent::Running { app_name, pid } => {
                 log::info!("{app_name} running as pid {pid}");
+                if let Some(info) = self.runtime.session_info(&app_name) {
+                    crate::services::nostr::game_started(&info.runner, &info.app_name, &info.title, info.steam_app_id.as_deref(), cx);
+                }
                 self.preparing.remove(&app_name);
                 self.playing.insert(app_name, true);
             }
             LaunchEvent::Exited { app_name, elapsed, exit, stopped, .. } => {
                 log::info!("{app_name} exited after {elapsed:?}");
+                crate::services::nostr::game_ended(&app_name, cx);
                 self.preparing.remove(&app_name);
                 self.playing.remove(&app_name);
                 // Ended at once on its own, badly: maybe it could not start.

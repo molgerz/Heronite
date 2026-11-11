@@ -26,6 +26,7 @@ heronite-images = { path = "../crates/images" }
 heronite-launch = { path = "../crates/launch" }
 heronite-metadata = { path = "../crates/metadata" }
 heronite-metadata-ext = { path = "../crates/metadata-ext" }
+heronite-nostr = { path = "../crates/nostr" }
 serde_json.workspace = true
 heronite-media = { path = "../crates/media" }
 heronite-mods = { path = "../crates/mods" }
@@ -45,6 +46,8 @@ indexmap = "2"
 libc = "0.2"
 signal-hook = "0.3"
 futures = "0.3"
+# The QR code of the phone sign-in (Nostr, NIP-46).
+qrcodegen = "1.8"
 trash = "5"
 chrono = { version = "0.4", default-features = false, features = ["std", "clock"] }
 heronite-shortcuts = { path = "../crates/shortcuts" }

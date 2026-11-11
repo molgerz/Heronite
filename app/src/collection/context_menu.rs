@@ -100,6 +100,7 @@ fn menu_place(action: &GameAction) -> (usize, u8) {
         A::OpenFolder => (2, 3),
         A::Ludusavi | A::AutoBackup { .. } => (2, 4),
         A::Details | A::Covers | A::EditPlaytime | A::Epic(E::Sync) => (2, 5),
+        A::Community => (2, 6),
         A::Epic(E::Verify) => (3, 0),
         A::Epic(E::Modify) => (3, 1),
         A::Epic(E::Move) => (3, 2),

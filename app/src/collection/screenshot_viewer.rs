@@ -379,12 +379,18 @@ impl CollectionView {
     /// Delete, fit and close buttons (top right).
     fn viewer_tools(&self, i: usize, cx: &mut Context<Self>) -> Div {
         let fit = self.shots.fit;
+        let can_share = super::community::ready(cx);
         div()
             .absolute()
             .top(px(17.6))
             .right(px(19.2))
             .flex()
             .gap(px(8.))
+            .when(can_share, |d| {
+                d.child(icon_button("shot-share", Icon::Share, 36., 0.72, 0.92).on_click(cx.listener(move |this, _, window, cx| {
+                    this.open_share_capture(i, window, cx);
+                })))
+            })
             .child({
                 let busy = self.shots.deleting;
                 let mut b = div()

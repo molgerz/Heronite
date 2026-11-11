@@ -87,6 +87,8 @@ pub(super) enum GameAction {
     PlayCopy(String),
     /// Takes the game's copies apart.
     UngroupCopies,
+    /// The game's discussions on Nostr (`dialogs::game_community`).
+    Community,
 }
 
 #[derive(Clone, Debug)]
@@ -314,6 +316,15 @@ impl CollectionView {
                 "history forget recentes historico esquecer remover",
             ));
         }
+        if super::community::ready(cx) {
+            v.push(item(
+                A::Community,
+                "community",
+                tr!("Discussions"),
+                Icon::Forum,
+                "community nostr discussion forum threads friends playing comunidade discussao forum amigos jogando",
+            ));
+        }
         v.push(item(A::Log, "log", tr!("View log"), Icon::Description, "logs debug output ver registro depuracao saida"));
         // What Steam starts has no launch log of ours.
         // The diagnosis reads Wine's and Proton's logs.
@@ -411,6 +422,7 @@ impl CollectionView {
             A::Epic(a) => self.run_epic_action(key, *a, cx),
             A::PlayCopy(copy) => self.play_copy(copy, window, cx),
             A::UngroupCopies => self.ungroup_copies(key, cx),
+            A::Community => self.open_game_community(key, window, cx),
         }
         cx.notify();
     }

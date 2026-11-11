@@ -21,6 +21,8 @@ pub enum Section {
     Launchers,
     /// Sunshine: the games in its application list, for Moonlight.
     Integrations,
+    /// The community layer on Nostr: identity, relays, what is shared.
+    Community,
     /// What the games take on disk, and cleaning it up.
     Storage,
     /// Mods: the Nexus Mods account, the mod links, what applying mods needs.
@@ -49,7 +51,10 @@ impl Section {
     /// Left navigation: caption + sections (the caption is translated when drawn).
     pub const GROUPS: [(&'static str, &'static [Section]); 6] = [
         (n_!("App"), &[Section::General, Section::Appearance, Section::ConsoleMode]),
-        (n_!("Games"), &[Section::GameDefaults, Section::Downloads, Section::Launchers, Section::Integrations, Section::Mods]),
+        (
+            n_!("Games"),
+            &[Section::GameDefaults, Section::Downloads, Section::Launchers, Section::Integrations, Section::Mods, Section::Community],
+        ),
         (n_!("Collection"), &[Section::Library, Section::Metadata, Section::Achievements]),
         (n_!("While playing"), &[Section::Overlay, Section::Screenshots, Section::Replay]),
         (n_!("Data"), &[Section::Storage, Section::Saves, Section::Backups, Section::Cloud]),
@@ -57,7 +62,7 @@ impl Section {
     ];
 
     /// Same order as [`Section::GROUPS`].
-    pub const ALL: [Section; 21] = [
+    pub const ALL: [Section; 22] = [
         Section::General,
         Section::Appearance,
         Section::ConsoleMode,
@@ -66,6 +71,7 @@ impl Section {
         Section::Launchers,
         Section::Integrations,
         Section::Mods,
+        Section::Community,
         Section::Library,
         Section::Metadata,
         Section::Achievements,
@@ -94,6 +100,7 @@ impl Section {
             Section::Screenshots => supported(Feature::Capture),
             Section::Saves => supported(Feature::SaveBackups),
             Section::Mods => supported(Feature::Mods),
+            Section::Community => supported(Feature::Nostr),
             // Its options are mostly Wine's.
             Section::GameDefaults => supported(Feature::Wine),
             _ => true,
@@ -111,6 +118,7 @@ impl Section {
             Section::Library => tr!("Library"),
             Section::Launchers => tr!("Other launchers"),
             Section::Integrations => tr!("Integrations"),
+            Section::Community => tr!("Community"),
             Section::Storage => tr!("Storage"),
             Section::Mods => tr!("Mods"),
             Section::Overlay => tr!("Overlay"),
@@ -137,6 +145,7 @@ impl Section {
             Section::Library => Icon::GridView,
             Section::Launchers => Icon::CallMerge,
             Section::Integrations => Icon::Tv,
+            Section::Community => Icon::Group,
             Section::Storage => Icon::FaHardDrive,
             Section::Mods => Icon::CallMerge,
             Section::Overlay => Icon::SportsEsports,
@@ -167,6 +176,7 @@ impl Section {
             }
             Section::Launchers => tr!("Bring in the games of Heroic, Lutris, Bottles and Faugus. While on, a game added there shows up here too."),
             Section::Integrations => tr!("Sunshine keeps your games in its list, with their covers, so Moonlight can start them from a phone, a TV or another computer."),
+            Section::Community => tr!("Friends from any store or emulator, what they play, sharing, game discussions and private chats, over the open Nostr protocol. Optional and off by default."),
             Section::Storage => tr!("What your games take on disk, and what can go."),
             Section::Mods => tr!("Your Nexus Mods account, the download buttons of the mod sites, and what Heronite needs to apply mods when a game starts. Each game's mods are managed from its own Mods."),
             Section::Overlay => crate::overlay::labels::section_blurb(),
@@ -194,6 +204,7 @@ impl Section {
             Section::Library => "library hidden favourites favorites recent biblioteca ocultos favoritos recentes",
             Section::Launchers => "other launchers import heroic lutris bottles faugus playnite sync bring in outros launchers importar sincronizar trazer",
             Section::Integrations => "integrations sunshine moonlight stream streaming remote play tv phone couch integracoes transmitir transmissao jogar remotamente celular sofa",
+            Section::Community => "community nostr friends social chat messages dm share sharing playing status relay relays npub nsec key identity profile signer amber bunker threads forum discussion comunidade amigos conversa mensagens compartilhar jogando perfil chave identidade discussao",
             Section::Storage => "storage disk space free up clean cleanup size prefixes proton cache leftovers uninstall armazenamento disco espaco liberar limpar limpeza tamanho prefixos sobras desinstalar",
             Section::Mods => "mods nexus thunderstore nxm ror2mm api key account premium links fuse overlayfs fomod mod manager modding mods conta chave link modificacoes gerenciador",
             Section::Overlay => "overlay guide button controller gamepad keyboard in-game volume screenshot shortcut botao guia controle teclado sobreposicao no jogo volume captura atalho",
@@ -229,6 +240,7 @@ impl Section {
             "library" => Some(Section::Library),
             "launchers" | "import" => Some(Section::Launchers),
             "integrations" | "sunshine" => Some(Section::Integrations),
+            "community" | "nostr" => Some(Section::Community),
             "storage" | "disk" => Some(Section::Storage),
             "mods" | "nexus" => Some(Section::Mods),
             "overlay" => Some(Section::Overlay),
@@ -268,6 +280,7 @@ mod tests {
         assert_eq!(Section::parse("mods"), Some(Section::Mods));
         assert_eq!(Section::parse("console-mode"), Some(Section::ConsoleMode));
         assert_eq!(Section::parse("sunshine"), Some(Section::Integrations));
+        assert_eq!(Section::parse("nostr"), Some(Section::Community));
         assert_eq!(Section::parse("nope"), None);
         assert_eq!(crate::pages::Page::from_debug("settings"), Some(crate::pages::Page::Settings));
         assert_eq!(crate::pages::Page::from_debug("settings:about"), Some(crate::pages::Page::Settings));
