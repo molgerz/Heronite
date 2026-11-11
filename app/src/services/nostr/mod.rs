@@ -45,7 +45,7 @@ use heronite_nostr::{EventBuilder, Kind, Pool, PoolEvent, PublicKey, Signer};
 
 pub use chat::ChatKey;
 pub use identity::{ImportProblem, Pairing};
-pub use play::{game_ended, game_started};
+pub use play::{game_ended, game_started, Hidden, MyStatus};
 pub use share::{ShareKind, ShareState};
 pub use threads::GameThreads;
 
@@ -246,8 +246,8 @@ impl Nostr {
             self.apply_relays();
             self.publish_relay_lists(cx);
         }
-        if before.share_playing && !self.prefs.share_playing {
-            self.stop_playing(cx);
+        if before.share_playing != self.prefs.share_playing || before.never_share != self.prefs.never_share {
+            self.sync_playing(cx);
         }
         if before.keep_history && !self.prefs.keep_history {
             self.cache.clear_wraps();
@@ -351,6 +351,8 @@ impl Nostr {
         self.subscribe_inbox();
         self.watch_expiry(cx);
         self.open_wraps(Vec::new(), false, cx);
+        // A game that runs since before the identity was ready.
+        self.sync_playing(cx);
         // The pool's channel is a blocking one: a thread hands its events to
         // the UI thread, in bursts.
         let (tx, mut events) = unbounded::<PoolEvent>();

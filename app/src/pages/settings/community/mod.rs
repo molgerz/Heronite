@@ -41,8 +41,8 @@ pub struct State {
     shown_secret: Option<String>,
     /// The `ncryptsec1…` made by "Export with a passphrase".
     exported: Option<String>,
-    /// The profile fields were filled from this public key's profile.
-    profile_of: Option<String>,
+    /// What the profile fields were filled with (see `Filled`).
+    filled: crate::pages::community::profile::Filled,
 }
 
 impl State {
@@ -91,7 +91,7 @@ impl State {
             confirm_forget: false,
             shown_secret: None,
             exported: None,
-            profile_of: None,
+            filled: Default::default(),
         }
     }
 

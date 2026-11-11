@@ -143,6 +143,7 @@ The Windows files are not code-signed yet, so SmartScreen may warn about them: c
 
 - **Community:** off until you turn it on in Settings → Community. Over [Nostr](https://github.com/nostr-protocol/nips), an open protocol: your identity is a key you hold (or keep in a signer app on your phone), and relays anyone can run carry the messages.
 - **Friends:** see what they play now, whatever store or emulator the game comes from.
+- **Profile:** your name and bio, and what friends see of you right now: the game you play, or why it is not shared.
 - **Share:** screenshots and replays from the viewer, publicly or to one friend, with their metadata removed.
 - **Discussions:** threads about a game, the same whether you own it on Steam or GOG.
 - **Chats:** end-to-end encrypted private messages with your friends.
