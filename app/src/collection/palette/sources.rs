@@ -195,6 +195,7 @@ fn section_help(s: Section) -> &'static str {
         Section::Launchers if cfg!(windows) => tr!("Bring in games from Heroic and Playnite"),
         Section::Launchers => tr!("Bring in games from Heroic, Lutris, Bottles and Faugus"),
         Section::Integrations => tr!("Sunshine, so Moonlight can start your games"),
+        Section::Community => tr!("Nostr identity, friends, relays and sharing"),
         Section::Storage if !heronite_platform::supported(heronite_platform::Feature::Wine) => {
             tr!("Disk space of games, store tools, caches")
         }
@@ -230,6 +231,7 @@ fn page_name_en(p: Page) -> &'static str {
         Page::Rockstar => "rockstar games",
         Page::Emulators => "emulators",
         Page::Statistics => "statistics",
+        Page::Community => "community friends chat",
         Page::Settings => "settings",
     }
 }

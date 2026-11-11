@@ -9,6 +9,7 @@
 
 pub mod clients;
 pub mod commands;
+pub mod community;
 pub mod downloads;
 pub mod emulators;
 pub mod epic;
@@ -53,6 +54,8 @@ pub enum Page {
     Rockstar,
     Emulators,
     Statistics,
+    /// Friends and chats over Nostr (`services::nostr`).
+    Community,
     /// Global settings (☰ → Settings, listed last).
     Settings,
 }
@@ -75,6 +78,7 @@ impl Page {
             Page::Rockstar => "Rockstar Games",
             Page::Emulators => tr!("Emulators"),
             Page::Statistics => tr!("Statistics"),
+            Page::Community => tr!("Community"),
             Page::Settings => tr!("Settings"),
         }
     }
@@ -95,6 +99,7 @@ impl Page {
             Page::Rockstar => Icon::BrandRockstar,
             Page::Emulators => Icon::SportsEsports,
             Page::Statistics => Icon::BarChart,
+            Page::Community => Icon::Group,
             Page::Settings => Icon::Settings,
         }
     }
@@ -112,6 +117,7 @@ impl Page {
             Page::BattleNet | Page::Ea | Page::Ubisoft | Page::Rockstar => supported(Feature::StoreClients),
             Page::WineManager => supported(Feature::Wine),
             Page::Emulators => supported(Feature::Emulation),
+            Page::Community => supported(Feature::Nostr),
         }
     }
 
@@ -142,6 +148,7 @@ impl Page {
             "ubisoft" => Some(Page::Ubisoft),
             "rockstar" => Some(Page::Rockstar),
             "emulators" => Some(Page::Emulators),
+            "community" => Some(Page::Community),
             // `stats[:week|month|year|all]`, see `stats::StatsPage`.
             s if s == "stats" || s.starts_with("stats:") => Some(Page::Statistics),
             // `settings[:section[:tab]]`, see `settings::SettingsPage`.

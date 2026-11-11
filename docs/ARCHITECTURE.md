@@ -79,6 +79,9 @@ app (bin heronite-rs) ── GPUI UI, desktop integration
  │                      Steam leftovers, caches; cleaning them up    → data, launch, wine
  ├─ heronite-shortcuts  .desktop files and Steam shortcuts.vdf,
  │                      icons of Windows programs                    → data
+ ├─ heronite-nostr      the optional community layer on Nostr:
+ │                      identity, relays, friends, what they play,
+ │                      sharing, game discussions, private chats       → data, platform
  ├─ heronite-steam      settings of Steam games (launch options,
  │                      Proton) via the client or its files         → data, launch, shortcuts
  ├─ heronite-sunshine   the games in Sunshine's application
@@ -886,6 +889,27 @@ text size) and applies it.
   title. The example extensions are in `extensions/metadata/` (Wikipedia, VNDB),
   each tested against recorded answers (`tests/examples.rs`,
   `tests/vndb.rs`).
+- **heronite-nostr:** Settings → Community, off until the user turns it on
+  (`prefs`, `nostr.json`; `Feature::Nostr` says whether a system offers it).
+  The protocol is the `nostr` crate (events, keys, NIP-19/44/46/49/59) with
+  no async runtime: `relay` talks to one relay over a blocking WebSocket
+  (rustls with ring and the Mozilla roots), `pool` keeps the user's relays
+  open, one thread each, with reconnects, NIP-42 AUTH and one copy of each
+  event. `signer` is what signs and encrypts: the key on this computer
+  (`identity`: NIP-19 / NIP-49 import and export) or a phone app reached by
+  NIP-46 (`remote`: a `nostrconnect://` QR code or a `bunker://` address).
+  `social` (profile, follow list, NIP-05), `relays` (NIP-65 and NIP-17's
+  inbox list), `game` (a game's names, the same from any store: its folded
+  title as a NIP-73 hashtag, its Steam and IGDB pages), `status` (NIP-38
+  "playing", expiring on its own), `media` (Blossom uploads with the
+  metadata stripped, NIP-68 / NIP-71 posts), `threads` (NIP-7D threads and
+  NIP-22 comments per game, NIP-51 mutes, NIP-56 reports) and `chat` (NIP-17
+  messages, sealed and gift-wrapped by NIP-59). `cache` keeps the newest
+  profiles and lists, and the gift wraps when the user keeps chat history:
+  as they came, so the history on disk opens only with the key. The app's
+  side is `services::nostr` (the key in the keyring, or DPAPI on Windows,
+  like Sunshine's password), `pages::community` (friends and chats),
+  `pages::settings::community`, and the "Discussions" and "Share" dialogs.
 - **heronite-achievements:** every game's achievements, whatever its store.
   `target` says which sources a Collection game has (its store, its Steam
   twin, RetroAchievements for a ROM). `sources/` reads them: `steam` the

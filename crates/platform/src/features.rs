@@ -83,10 +83,14 @@ pub enum Feature {
     /// The mods of a game (`docs/MODS.md`): its manager, Settings → Mods,
     /// the mod sites' links and applying the mods when the game starts.
     Mods,
+    /// The optional community layer on Nostr (Settings → Community): friends,
+    /// what they play, sharing, game discussions and private messages. The
+    /// user still turns it on; this says whether the system offers it.
+    Nostr,
 }
 
 impl Feature {
-    pub const ALL: [Feature; 23] = [
+    pub const ALL: [Feature; 24] = [
         Feature::Wine,
         Feature::EpicStore,
         Feature::GogStore,
@@ -110,6 +114,7 @@ impl Feature {
         Feature::Capture,
         Feature::XboxStore,
         Feature::Mods,
+        Feature::Nostr,
     ];
 
     /// Its name in `HERONITE_FEATURES`.
@@ -138,6 +143,7 @@ impl Feature {
             Feature::Capture => "capture",
             Feature::XboxStore => "xbox",
             Feature::Mods => "mods",
+            Feature::Nostr => "nostr",
         }
     }
 }
@@ -190,7 +196,8 @@ const fn built_in(feature: Feature) -> bool {
         | Feature::StoreClients
         | Feature::LauncherImports
         | Feature::SteamGameSettings
-        | Feature::XboxStore => true,
+        | Feature::XboxStore
+        | Feature::Nostr => true,
         Feature::Overlay => cfg!(windows),
         // Mods on Windows wait until mod archives open without 7-Zip or
         // bsdtar on the PATH, and the game folder is put back reliably.

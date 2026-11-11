@@ -47,6 +47,17 @@ pub struct Playing {
     pub ids: Vec<String>,
     /// When the status was published.
     pub since: Timestamp,
+    /// When it is no longer true: its expiration, or [`TTL`] after
+    /// `since` for a status without one.
+    pub until: Timestamp,
+}
+
+impl Playing {
+    /// Still true at `now` (the friend's app may have stopped without
+    /// clearing it).
+    pub fn live_at(&self, now: Timestamp) -> bool {
+        self.until > now
+    }
 }
 
 /// What a kind-30315 event says, if it is a live `gaming` status: `None`
@@ -64,6 +75,7 @@ pub fn read(event: &Event, now: Timestamp) -> Option<Playing> {
         title: event.content.trim().to_string(),
         ids: ids_of(event),
         since: event.created_at,
+        until: event.tags.expiration().unwrap_or_else(|| Timestamp::from_secs(event.created_at.as_secs() + TTL.as_secs())),
     })
 }
 
@@ -84,8 +96,20 @@ mod tests {
         assert_eq!(p.ids, game.ids());
         let later = Timestamp::from_secs(now.as_secs() + TTL.as_secs() + 1);
         assert!(read(&event, later).is_none(), "expired");
+        // Kept by a friend's app, it ends on its own too.
+        assert!(p.live_at(now) && !p.live_at(later));
         let clear = cleared().finalize(&keys).unwrap();
         assert!(read(&clear, now).is_none());
+    }
+
+    #[test]
+    fn a_status_without_expiration_ends_after_the_ttl() {
+        let keys = Keys::generate();
+        let now = Timestamp::now();
+        let event =
+            EventBuilder::new(Kind::UserStatus, "Celeste").tag(Tag::identifier(TYPE)).custom_created_at(now).finalize(&keys).unwrap();
+        let p = read(&event, now).expect("a game");
+        assert_eq!(p.until.as_secs(), now.as_secs() + TTL.as_secs());
     }
 
     #[test]

@@ -29,6 +29,8 @@ What works on Windows, what is left, and what Windows does not need.
 - Tray menus follow the app's light/dark theme (including System and Custom) on Windows 10 1903+ and Windows 11. High contrast keeps Windows' native colours. Older Windows versions, or missing uxtheme exports, fall back to the native menu with a warning
 
 
+- Community (Settings → Community, `Feature::Nostr`): the same code on both systems. The key is sealed with DPAPI for the user, as Sunshine's password is; on Linux it is in the desktop's keyring. Pairing with a phone, sharing and chats still need a real-world check on Windows
+
 ## ⬜ To do
 
 - Replay buffer (separate from the overlay; hidden on Windows)

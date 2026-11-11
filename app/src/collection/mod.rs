@@ -9,6 +9,7 @@ mod card;
 pub(crate) mod category_badges;
 mod category_kinds;
 mod clients;
+mod community;
 mod console;
 mod context_menu;
 mod copies;

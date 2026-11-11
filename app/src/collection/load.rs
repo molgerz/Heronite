@@ -186,6 +186,8 @@ impl CollectionView {
         let lib = Arc::new(l.lib);
         // Sunshine's list follows the installed games (when that is on).
         crate::services::sunshine::library_loaded(&lib, cx);
+        // The community layer names games by their titles and store ids.
+        crate::services::nostr::library_loaded(&lib, cx);
         self.lib = Some(lib);
         if first {
             if let Some((text, error)) = crate::services::upkeep::take_restore_notice() {
