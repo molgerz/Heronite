@@ -1,0 +1,28 @@
+[package]
+name = "heronite-nostr"
+version.workspace = true
+edition.workspace = true
+license.workspace = true
+description = "Heronite's optional community layer on Nostr: identity, relays, friends, game status, sharing, threads and private chats"
+
+[dependencies]
+heronite-data = { path = "../data" }
+heronite-platform = { path = "../platform" }
+# The protocol only (events, keys, NIP-19/44/46/49/59): no async runtime.
+# Relays are talked to by this crate, over blocking sockets.
+nostr = { version = "0.45", default-features = false, features = ["std", "os-rng", "nip44", "nip46", "nip49", "nip59"] }
+tungstenite = { version = "0.30", default-features = false, features = ["handshake"] }
+rustls = { version = "0.23", default-features = false, features = ["ring", "std", "tls12"] }
+webpki-roots = "1"
+ureq = "3"
+serde_json = { version = "1", features = ["preserve_order", "float_roundtrip"] }
+sha2 = "0.10"
+base64 = "0.22"
+anyhow = "1"
+log = "0.4"
+
+[dev-dependencies]
+tempfile = "3"
+
+[lints]
+workspace = true
