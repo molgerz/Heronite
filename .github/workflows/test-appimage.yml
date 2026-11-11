@@ -1,0 +1,42 @@
+# A test AppImage of the community layer (not for Heronite itself): this
+# branch is feat/community-profile plus this file. Built like the release
+# job, without update information, so no AppImage updater replaces it with
+# the official release. Download it from the run's artifacts.
+name: Test AppImage
+
+on:
+  push:
+    branches: [dev/nostr-test]
+  workflow_dispatch:
+
+jobs:
+  appimage:
+    name: AppImage (x86_64)
+    # The oldest supported Ubuntu, as for releases: runs on glibc 2.35+ (SteamOS has newer).
+    runs-on: ubuntu-22.04
+    steps:
+      - uses: actions/checkout@v4
+      - name: System packages
+        run: scripts/ci-deps.sh
+      - uses: dtolnay/rust-toolchain@stable
+      - uses: Swatinem/rust-cache@v2
+      - name: Build
+        run: cargo build --release --locked -p heronite -p heronite-epic-login
+      - name: appimagetool
+        run: |
+          sudo curl -fsSL -o /usr/local/bin/appimagetool \
+            https://github.com/AppImage/appimagetool/releases/download/continuous/appimagetool-x86_64.AppImage
+          sudo chmod +x /usr/local/bin/appimagetool
+          sudo apt-get install -y --no-install-recommends patchelf bison ninja-build
+          pipx install 'meson>=1.4'
+      - name: Package
+        env:
+          APPIMAGE_EXTRACT_AND_RUN: "1"
+          UPDATE_INFO: ""
+        run: scripts/appimage.sh
+      - uses: actions/upload-artifact@v4
+        with:
+          name: Heronite-community-test-AppImage
+          path: dist/Heronite-x86_64.AppImage
+          if-no-files-found: error
+          retention-days: 14
