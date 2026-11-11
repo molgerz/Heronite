@@ -450,6 +450,15 @@ impl AppPaths {
     pub fn sunshine_prefs(&self) -> PathBuf {
         self.config.join("sunshine.json")
     }
+    /// Settings → Community (see `heronite_nostr::prefs`).
+    pub fn nostr_prefs(&self) -> PathBuf {
+        self.config.join("nostr.json")
+    }
+    /// What the community layer read from relays (profiles, friends' games),
+    /// so the Friends page shows at once and offline (`heronite_nostr::cache`).
+    pub fn nostr_cache(&self) -> PathBuf {
+        self.cache.join("nostr.json")
+    }
     /// The covers Sunshine shows for Heronite's entries: Sunshine reads them
     /// from here, so they must outlive a cache clean-up (rendered again
     /// when missing).
